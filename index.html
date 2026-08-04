@@ -360,7 +360,6 @@
             color: #991b1b;
         }
 
-        /* QR Code Card Styles */
         .qr-card-body {
             display: flex;
             flex-direction: column;
@@ -399,10 +398,10 @@
 
 <div class="container">
     <header>
-        <h1>🏆 Quỹ Offline Langame - Đội Thua Đóng Quỹ 25k/người <span id="sync-status"></span></h1>
+        <h1>🏆 Quỹ Offline Langames - Đội Thua mất 25k/người <span id="sync-status"></span></h1>
         <div class="header-actions">
             <span id="role-tag" class="role-badge role-viewer">👁️ Chế độ: Chỉ xem</span>
-            <button id="auth-btn" class="btn btn-secondary" onclick="toggleAuth()">🔑 Đăng Nhập Thủ Quỹ (XO)</button>
+            <button id="auth-btn" class="btn btn-secondary" onclick="toggleAuth()">🔑 Đăng nhập Thủ quỹ (XO)</button>
             <div class="admin-only" style="gap: 4px;">
                 <button class="btn btn-secondary" onclick="exportData()">💾 Backup</button>
                 <button class="btn btn-secondary" onclick="importData()">📂 Nhập Data</button>
@@ -444,9 +443,9 @@
 
     <div class="main-grid">
         <div>
-            <!-- Form Tạo Kèo (Ẩn khi ở chế độ Viewer) -->
+            <!-- Form Tạo Kèo (Hỗ trợ 2v2, 3v3, 4v4) -->
             <div class="card readonly-hide">
-                <div class="card-title">⚽ Tạo Kèo Đấu Mới (Thu 25,000đ/người)</div>
+                <div class="card-title">⚽ Tạo Kèo Đấu Mới (Thu 25,000đ/người thua)</div>
                 <form id="match-form">
                     <div class="form-group">
                         <label for="match-date">Ngày thi đấu</label>
@@ -454,7 +453,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Đội Thắng (Khuyên chọn đủ 4 người để thống kê)</label>
+                        <label>Đội Thắng (Chọn 1 - 4 người)</label>
                         <div class="badge-winner">
                             <p style="font-size: 0.82rem; margin-bottom: 6px; font-weight: 600;">Chọn thành viên Đội Thắng (Vua Kèo):</p>
                             <div class="team-selector">
@@ -471,17 +470,17 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Đội Thua (Bắt buộc chọn 4 người - Nộp 25k/người)</label>
+                        <label>Đội Thua (Chọn 1 - 4 người - Nộp 25k/người)</label>
                         <div class="badge-loser">
-                            <p style="font-size: 0.82rem; margin-bottom: 6px; font-weight: 600;">Chọn 4 thành viên thuộc Đội Thua:</p>
+                            <p style="font-size: 0.82rem; margin-bottom: 6px; font-weight: 600;">Chọn thành viên thuộc Đội Thua:</p>
                             <div class="team-selector">
                                 <div class="player-select-group">
-                                    <select class="loser-select" required></select>
-                                    <select class="loser-select" required></select>
+                                    <select class="loser-select"></select>
+                                    <select class="loser-select"></select>
                                 </div>
                                 <div class="player-select-group">
-                                    <select class="loser-select" required></select>
-                                    <select class="loser-select" required></select>
+                                    <select class="loser-select"></select>
+                                    <select class="loser-select"></select>
                                 </div>
                             </div>
                         </div>
@@ -509,11 +508,9 @@
         </div>
 
         <div>
-            <!-- KHU VỰC THÊM QR CODE CHUYỂN KHỎAN -->
             <div class="card">
                 <div class="card-title">📲 Quét Mã Chuyển Tiền Nộp Quỹ</div>
                 <div class="qr-card-body">
-                    <!-- Ảnh QR API VietQR ngân hàng VPBank -->
                     <img src="https://img.vietqr.io/image/VPB-0868549555-compact2.png?accountName=NGUYEN%20TUAN%20ANH" alt="QR Chuyển Khoản VPBank" class="qr-image">
                     <div class="qr-info">
                         <p>Ngân hàng: <strong>VPBank</strong></p>
@@ -703,12 +700,13 @@
 
         winnersSelects.forEach((select, idx) => {
             const currentVal = select.value;
-            select.innerHTML = `<option value="">-- Thắng ${idx+1} (Tuỳ chọn) --</option>` + 
+            select.innerHTML = `<option value="">-- Thắng ${idx+1} --</option>` + 
                 players.map(p => `<option value="${p}">${p}</option>`).join('');
             select.value = currentVal;
         });
     }
 
+    // ĐÃ SỬA: Cho phép tạo kèo từ 1 đến 4 người (Linh hoạt 2v2, 3v3, 4v4)
     document.getElementById('match-form').addEventListener('submit', (e) => {
         e.preventDefault();
         if (!isAdmin) return;
@@ -720,8 +718,8 @@
         const losers = Array.from(loserSelects).map(s => s.value).filter(v => v !== '');
         const winners = Array.from(winnerSelects).map(s => s.value).filter(v => v !== '');
 
-        if (losers.length < 4) {
-            alert("Vui lòng chọn đủ 4 người thuộc Đội Thua!");
+        if (losers.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 người thuộc Đội Thua!");
             return;
         }
 
