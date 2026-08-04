@@ -33,7 +33,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1250px;
             margin: 0 auto;
         }
 
@@ -63,7 +63,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 12px;
             margin-bottom: 20px;
         }
@@ -77,7 +77,7 @@
         }
 
         .stat-card .label {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -86,7 +86,7 @@
         }
 
         .stat-card .value {
-            font-size: 1.35rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--primary-color);
         }
@@ -181,6 +181,15 @@
             margin-top: 8px;
         }
 
+        .badge-winner {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
         .btn {
             background-color: var(--primary-color);
             color: white;
@@ -226,7 +235,7 @@
 
         .table-responsive {
             overflow-x: auto;
-            max-height: 450px;
+            max-height: 480px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -336,6 +345,20 @@
             background-color: #dcfce7;
             color: #15803d;
         }
+
+        .match-detail {
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        .match-winner {
+            color: #166534;
+            font-weight: 600;
+        }
+
+        .match-loser {
+            color: #991b1b;
+        }
     </style>
 </head>
 <body>
@@ -372,7 +395,11 @@
             <div class="value" id="stat-total-matches">0</div>
         </div>
         <div class="stat-card">
-            <div class="label">Nộp nhiều nhất</div>
+            <div class="label">👑 Vua Thắng Kèo</div>
+            <div class="value" style="color: #16a34a; font-size: 1.05rem;" id="stat-top-winner">N/A</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">😭 Nộp nhiều nhất</div>
             <div class="value highlight" id="stat-top-contributor" style="font-size: 1.05rem;">N/A</div>
         </div>
         <div class="stat-card">
@@ -383,7 +410,7 @@
 
     <div class="main-grid">
         <div>
-            <!-- Form Tạo Kèo (Ẩn nút bấm khi là Viewer) -->
+            <!-- Form Tạo Kèo (Ẩn khi ở chế độ Viewer) -->
             <div class="card readonly-hide">
                 <div class="card-title">⚽ Tạo Kèo Đấu Mới (Thu 25,000đ/người)</div>
                 <form id="match-form">
@@ -393,7 +420,24 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Đội Thua (Mỗi người nộp 25k)</label>
+                        <label>Đội Thắng (Khuyên chọn đủ 4 người để thống kê)</label>
+                        <div class="badge-winner">
+                            <p style="font-size: 0.82rem; margin-bottom: 6px; font-weight: 600;">Chọn thành viên Đội Thắng (Vua Kèo):</p>
+                            <div class="team-selector">
+                                <div class="player-select-group">
+                                    <select class="winner-select"><option value="">-- Chọn thắng 1 --</option></select>
+                                    <select class="winner-select"><option value="">-- Chọn thắng 2 --</option></select>
+                                </div>
+                                <div class="player-select-group">
+                                    <select class="winner-select"><option value="">-- Chọn thắng 3 --</option></select>
+                                    <select class="winner-select"><option value="">-- Chọn thắng 4 --</option></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Đội Thua (Bắt buộc chọn 4 người - Nộp 25k/người)</label>
                         <div class="badge-loser">
                             <p style="font-size: 0.82rem; margin-bottom: 6px; font-weight: 600;">Chọn 4 thành viên thuộc Đội Thua:</p>
                             <div class="team-selector">
@@ -409,20 +453,6 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Đội Thắng (Ghi nhận thêm - Tuỳ chọn)</label>
-                        <div class="team-selector">
-                            <div class="player-select-group">
-                                <select class="winner-select"><option value="">-- Chọn --</option></select>
-                                <select class="winner-select"><option value="">-- Chọn --</option></select>
-                            </div>
-                            <div class="player-select-group">
-                                <select class="winner-select"><option value="">-- Chọn --</option></select>
-                                <select class="winner-select"><option value="">-- Chọn --</option></select>
-                            </div>
-                        </div>
-                    </div>
-
                     <button type="submit" class="btn btn-block admin-only">➕ Lưu Kèo Đấu & Cập Nhật Quỹ</button>
                 </form>
             </div>
@@ -434,7 +464,7 @@
                         <thead>
                             <tr>
                                 <th>Ngày</th>
-                                <th>Đội Thua (-25k/người)</th>
+                                <th>Chi tiết Kèo Đấu</th>
                                 <th class="admin-only">Hành động</th>
                             </tr>
                         </thead>
@@ -447,7 +477,7 @@
         <div>
             <div class="card">
                 <div class="card-title">
-                    <span>👥 Danh Sách Thành Viên (<span id="player-count">0</span>)</span>
+                    <span>👥 Thống Kê Thành Viên (<span id="player-count">0</span>)</span>
                 </div>
                 
                 <div class="quick-add-player admin-only">
@@ -464,6 +494,7 @@
                         <thead>
                             <tr>
                                 <th>Tên</th>
+                                <th>Thắng</th>
                                 <th>Thua</th>
                                 <th>Cần đóng</th>
                                 <th>Đã đóng</th>
@@ -480,10 +511,7 @@
 </div>
 
 <script>
-    // ⚠️ DÁN LINK WEB APP GOOGLE SCRIPT CỦA BẠN VÀO ĐÂY:
     const API_URL = "https://script.google.com/macros/s/AKfycbyDzP0Z8THq8y59_9H_pg4BHVBgFL8QX3KQfWuCKwS5IeJf0WrmFZyhEEwf99QJYQLrHA/exec";
-
-    // 🔑 MÃ PIN QUẢN TRỊ CỦA THỦ QUỸ (Bạn có thể đổi số '2244' thành số khác)
     const ADMIN_PIN = "00716441516";
 
     let isAdmin = false;
@@ -501,7 +529,6 @@
     document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('match-date').valueAsDate = new Date();
         
-        // Kiểm tra xem đã lưu trạng thái Admin trên trình duyệt này chưa
         if (sessionStorage.getItem('is_admin') === 'true') {
             setAdminMode(true);
         } else {
@@ -625,9 +652,9 @@
             select.value = currentVal;
         });
 
-        winnersSelects.forEach(select => {
+        winnersSelects.forEach((select, idx) => {
             const currentVal = select.value;
-            select.innerHTML = `<option value="">-- Tuỳ chọn --</option>` + 
+            select.innerHTML = `<option value="">-- Thắng ${idx+1} (Tuỳ chọn) --</option>` + 
                 players.map(p => `<option value="${p}">${p}</option>`).join('');
             select.value = currentVal;
         });
@@ -639,7 +666,10 @@
 
         const date = document.getElementById('match-date').value;
         const loserSelects = document.querySelectorAll('.loser-select');
+        const winnerSelects = document.querySelectorAll('.winner-select');
+
         const losers = Array.from(loserSelects).map(s => s.value).filter(v => v !== '');
+        const winners = Array.from(winnerSelects).map(s => s.value).filter(v => v !== '');
 
         if (losers.length < 4) {
             alert("Vui lòng chọn đủ 4 người thuộc Đội Thua!");
@@ -651,10 +681,16 @@
             return;
         }
 
+        if (winners.length > 0 && new Set(winners).size !== winners.length) {
+            alert("Đội thắng không được trùng tên thành viên!");
+            return;
+        }
+
         const match = {
             id: Date.now(),
             date: date,
             losers: losers,
+            winners: winners,
             feePerPerson: 25000
         };
 
@@ -662,7 +698,7 @@
         saveData();
 
         loserSelects.forEach(s => s.value = '');
-        document.querySelectorAll('.winner-select').forEach(s => s.value = '');
+        winnerSelects.forEach(s => s.value = '');
         alert("✅ Đã ghi nhận kèo đấu!");
     });
 
@@ -701,6 +737,9 @@
 
         matches.forEach(m => {
             m.losers = m.losers.map(p => p === oldName ? trimmedNewName : p);
+            if (m.winners) {
+                m.winners = m.winners.map(p => p === oldName ? trimmedNewName : p);
+            }
         });
 
         if (payments[oldName] !== undefined) {
@@ -714,7 +753,7 @@
 
     function deletePlayer(playerName) {
         if (!isAdmin) return;
-        const hasHistory = matches.some(m => m.losers.includes(playerName));
+        const hasHistory = matches.some(m => m.losers.includes(playerName) || (m.winners && m.winners.includes(playerName)));
         let msg = `Bạn có chắc chắn muốn xóa thành viên "${playerName}" không?`;
         if (hasHistory) {
             msg += `\n⚠️ Thành viên này đã có trong lịch sử trận đấu. Xóa thành viên sẽ giữ nguyên tên trong lịch sử cũ nhưng xóa khỏi danh sách chọn.`;
@@ -761,6 +800,7 @@
 
     function renderStats() {
         const loserCounts = {};
+        const winnerCounts = {};
         let totalOwed = 0;
 
         matches.forEach(m => {
@@ -768,6 +808,11 @@
                 loserCounts[l] = (loserCounts[l] || 0) + 1;
                 totalOwed += (m.feePerPerson || 25000);
             });
+            if (m.winners) {
+                m.winners.forEach(w => {
+                    winnerCounts[w] = (winnerCounts[w] || 0) + 1;
+                });
+            }
         });
 
         let totalPaid = 0;
@@ -780,15 +825,26 @@
         document.getElementById('stat-total-remaining').innerText = totalRemaining.toLocaleString('vi-VN') + " đ";
         document.getElementById('stat-total-matches').innerText = matches.length;
 
-        let maxLoser = "N/A";
-        let maxCount = 0;
-        Object.keys(loserCounts).forEach(p => {
-            if (loserCounts[p] > maxCount) {
-                maxCount = loserCounts[p];
-                maxLoser = `${p} (${(maxCount * 25000).toLocaleString('vi-VN')}đ)`;
+        // Vua Thắng Kèo
+        let maxWinner = "N/A";
+        let maxWinCount = 0;
+        Object.keys(winnerCounts).forEach(p => {
+            if (winnerCounts[p] > maxWinCount) {
+                maxWinCount = winnerCounts[p];
+                maxWinner = `${p} (${maxWinCount} trận)`;
             }
         });
+        document.getElementById('stat-top-winner').innerText = maxWinner;
 
+        // Nộp nhiều nhất
+        let maxLoser = "N/A";
+        let maxLossCount = 0;
+        Object.keys(loserCounts).forEach(p => {
+            if (loserCounts[p] > maxLossCount) {
+                maxLossCount = loserCounts[p];
+                maxLoser = `${p} (${(maxLossCount * 25000).toLocaleString('vi-VN')}đ)`;
+            }
+        });
         document.getElementById('stat-top-contributor').innerText = maxLoser;
 
         let unpaidCount = 0;
@@ -807,10 +863,16 @@
         tbody.innerHTML = '';
 
         const loserCounts = {};
+        const winnerCounts = {};
         matches.forEach(m => {
             m.losers.forEach(l => {
                 loserCounts[l] = (loserCounts[l] || 0) + 1;
             });
+            if (m.winners) {
+                m.winners.forEach(w => {
+                    winnerCounts[w] = (winnerCounts[w] || 0) + 1;
+                });
+            }
         });
 
         const filterText = document.getElementById('search-player').value.toLowerCase();
@@ -818,6 +880,7 @@
         players.forEach(p => {
             if (filterText && !p.toLowerCase().includes(filterText)) return;
 
+            const winCount = winnerCounts[p] || 0;
             const lossCount = loserCounts[p] || 0;
             const totalOwed = lossCount * 25000;
             const totalPaid = payments[p] || 0;
@@ -826,7 +889,8 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${p}</strong></td>
-                <td>${lossCount}</td>
+                <td style="color: #166534; font-weight:600;">${winCount}</td>
+                <td style="color: #dc2626;">${lossCount}</td>
                 <td>${totalOwed.toLocaleString('vi-VN')}đ</td>
                 <td style="color: var(--success-color); font-weight:600;">${totalPaid.toLocaleString('vi-VN')}đ</td>
                 <td>
@@ -855,10 +919,18 @@
 
         sortedMatches.forEach(m => {
             const formattedDate = new Date(m.date).toLocaleDateString('vi-VN');
+            const winnersText = (m.winners && m.winners.length > 0) ? m.winners.join(', ') : 'Chưa nhập';
+            const losersText = m.losers.join(', ');
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${formattedDate}</td>
-                <td>${m.losers.join(', ')}</td>
+                <td>
+                    <div class="match-detail">
+                        <div class="match-winner">🏆 Đội Thắng: ${winnersText}</div>
+                        <div class="match-loser">😭 Đội Thua (-25k/người): ${losersText}</div>
+                    </div>
+                </td>
                 <td class="admin-only">
                     <button class="btn btn-danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="deleteMatch(${m.id})">Xóa</button>
                 </td>
