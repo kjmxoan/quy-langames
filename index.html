@@ -60,7 +60,6 @@
             flex-wrap: wrap;
         }
 
-        /* Dashboard Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -95,7 +94,6 @@
             color: #d97706;
         }
 
-        /* Layout Grid */
         .main-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -128,7 +126,6 @@
             align-items: center;
         }
 
-        /* Form elements */
         .form-group {
             margin-bottom: 14px;
         }
@@ -226,7 +223,6 @@
             padding: 10px;
         }
 
-        /* Tables */
         .table-responsive {
             overflow-x: auto;
             max-height: 450px;
@@ -298,13 +294,20 @@
             display: flex;
             gap: 4px;
         }
+
+        #sync-status {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>🏆 Quản Lý Quỹ Giao Lưu 22-44 Langames</h1>
+        <h1>🏆 Quản Lý Quỹ Giao Lưu 22-44 Langames <span id="sync-status"></span></h1>
         <div class="header-actions">
             <button class="btn btn-secondary" onclick="exportData()">💾 Backup</button>
             <button class="btn btn-secondary" onclick="importData()">📂 Nhập Data</button>
@@ -312,7 +315,6 @@
         </div>
     </header>
 
-    <!-- Thống kê tổng quan -->
     <div class="stats-grid">
         <div class="stat-card" style="border-left: 4px solid #2563eb;">
             <div class="label">Tổng quỹ cần thu</div>
@@ -340,10 +342,7 @@
         </div>
     </div>
 
-    <!-- Khung chính chia 2 cột -->
     <div class="main-grid">
-        
-        <!-- Cột Trái: Nhập Kèo & Lịch Sử Trận -->
         <div>
             <div class="card">
                 <div class="card-title">⚽ Tạo Kèo Đấu Mới (Thu 25,000đ/người)</div>
@@ -388,7 +387,6 @@
                 </form>
             </div>
 
-            <!-- Lịch sử các kèo -->
             <div class="card">
                 <div class="card-title">📜 Nhật Ký Các Kèo Đấu</div>
                 <div class="table-responsive">
@@ -400,22 +398,18 @@
                                 <th>Hành động</th>
                             </tr>
                         </thead>
-                        <tbody id="match-history-body">
-                            <!-- JS Render -->
-                        </tbody>
+                        <tbody id="match-history-body"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Cột Phải: Quản lý Thành Viên & Thống Kê đóng góp -->
         <div>
             <div class="card">
                 <div class="card-title">
                     <span>👥 Danh Sách Thành Viên (<span id="player-count">0</span>)</span>
                 </div>
                 
-                <!-- Quick Add Player -->
                 <div class="quick-add-player">
                     <input type="text" id="new-player-name" placeholder="Nhập tên thành viên mới...">
                     <button class="btn" onclick="addNewPlayer()">Thêm</button>
@@ -437,18 +431,18 @@
                                 <th>Cập nhật</th>
                             </tr>
                         </thead>
-                        <tbody id="player-stats-body">
-                            <!-- JS Render -->
-                        </tbody>
+                        <tbody id="player-stats-body"></tbody>
                     </table>
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
 <script>
+    // ⚠️ ĐÃ THÊM DÒNG KẾT NỐI API GOOGLE SHEETS
+    const API_URL = "https://script.google.com/macros/s/AKfycbyDzP0Z8THq8y59_9H_pg4BHVBgFL8QX3KQfWuCKwS5IeJf0WrmFZyhEEwf99QJYQLrHA/exec";
+
     const DEFAULT_PLAYERS = [
         "XO", "Love", "Shine", "Piano", "Lucky", "Apple", "Pig", "Dz",
         "Anh Tuấn", "Bình", "Cường", "Dũng", "Đạt", "Giang", "Hải", "Hùng",
@@ -464,15 +458,65 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('match-date').valueAsDate = new Date();
-        populateSelectOptions();
-        renderAll();
+        loadDataFromCloud();
     });
 
-    function saveData() {
+    function setSyncStatus(msg, isError = false) {
+        const el = document.getElementById('sync-status');
+        if (el) {
+            el.innerText = msg;
+            el.style.color = isError ? '#ef4444' : '#10b981';
+        }
+    }
+
+    async function loadDataFromCloud() {
+        setSyncStatus('⏳ Đang tải...');
+        if (API_URL && !API_URL.includes("DÁN_LINK")) {
+            try {
+                const res = await fetch(API_URL);
+                const cloudData = await res.json();
+                if (cloudData && cloudData.players) {
+                    players = cloudData.players;
+                    matches = cloudData.matches || [];
+                    payments = cloudData.payments || {};
+                    localStorage.setItem('fund_players', JSON.stringify(players));
+                    localStorage.setItem('fund_matches', JSON.stringify(matches));
+                    localStorage.setItem('fund_payments', JSON.stringify(payments));
+                    setSyncStatus('☁️ Đã đồng bộ');
+                } else {
+                    setSyncStatus('💻 Offline');
+                }
+            } catch(e) {
+                setSyncStatus('💻 Offline (Lỗi kết nối)');
+            }
+        } else {
+            setSyncStatus('💻 Offline (Chưa cấu hình API)');
+        }
+        populateSelectOptions();
+        renderAll();
+    }
+
+    async function saveData() {
         localStorage.setItem('fund_players', JSON.stringify(players));
         localStorage.setItem('fund_matches', JSON.stringify(matches));
         localStorage.setItem('fund_payments', JSON.stringify(payments));
         renderAll();
+
+        if (API_URL && !API_URL.includes("DÁN_LINK")) {
+            setSyncStatus('⏳ Đang lưu...');
+            try {
+                const dataToSave = { players, matches, payments };
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSave)
+                });
+                setSyncStatus('☁️ Đã lưu cloud');
+            } catch(e) {
+                setSyncStatus('⚠️ Lỗi lưu cloud', true);
+            }
+        }
     }
 
     function populateSelectOptions() {
@@ -553,18 +597,15 @@
             return;
         }
 
-        // Cập nhật mảng players
         const index = players.indexOf(oldName);
         if (index !== -1) {
             players[index] = trimmedNewName;
         }
 
-        // Cập nhật tên trong lịch sử trận đấu
         matches.forEach(m => {
             m.losers = m.losers.map(p => p === oldName ? trimmedNewName : p);
         });
 
-        // Cập nhật trong payments
         if (payments[oldName] !== undefined) {
             payments[trimmedNewName] = payments[oldName];
             delete payments[oldName];
@@ -575,12 +616,10 @@
     }
 
     function deletePlayer(playerName) {
-        // Kiểm tra xem member đã có lịch sử đấu chưa
         const hasHistory = matches.some(m => m.losers.includes(playerName));
         let msg = `Bạn có chắc chắn muốn xóa thành viên "${playerName}" không?`;
         if (hasHistory) {
-            msg += `
-⚠️ Thành viên này đã có trong lịch sử trận đấu. Xóa thành viên sẽ giữ nguyên tên trong lịch sử cũ nhưng xóa khỏi danh sách chọn.`;
+            msg += `\n⚠️ Thành viên này đã có trong lịch sử trận đấu. Xóa thành viên sẽ giữ nguyên tên trong lịch sử cũ nhưng xóa khỏi danh sách chọn.`;
         }
 
         if (confirm(msg)) {
