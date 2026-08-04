@@ -359,6 +359,40 @@
         .match-loser {
             color: #991b1b;
         }
+
+        /* QR Code Card Styles */
+        .qr-card-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        .qr-image {
+            width: 220px;
+            height: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .qr-info {
+            font-size: 0.88rem;
+            color: var(--text-main);
+        }
+
+        .qr-info strong {
+            color: var(--primary-color);
+            font-size: 0.95rem;
+        }
+
+        .qr-note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -475,6 +509,21 @@
         </div>
 
         <div>
+            <!-- KHU VỰC THÊM QR CODE CHUYỂN KHỎAN -->
+            <div class="card">
+                <div class="card-title">📲 Quét Mã Chuyển Tiền Nộp Quỹ</div>
+                <div class="qr-card-body">
+                    <!-- Ảnh QR API VietQR ngân hàng VPBank -->
+                    <img src="https://img.vietqr.io/image/VPB-0868549555-compact2.png?accountName=NGUYEN%20TUAN%20ANH" alt="QR Chuyển Khoản VPBank" class="qr-image">
+                    <div class="qr-info">
+                        <p>Ngân hàng: <strong>VPBank</strong></p>
+                        <p>Chủ TK: <strong>NGUYEN TUAN ANH</strong></p>
+                        <p>Số TK: <strong>0868549555</strong></p>
+                    </div>
+                    <p class="qr-note">💡 Nội dung CK: <i>[Tên_Member] nop quy Langames</i></p>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-title">
                     <span>👥 Thống Kê Thành Viên (<span id="player-count">0</span>)</span>
