@@ -47,7 +47,7 @@
         }
 
         h1 {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: var(--text-main);
             display: flex;
             align-items: center;
@@ -58,6 +58,7 @@
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .stats-grid {
@@ -296,10 +297,44 @@
         }
 
         #sync-status {
-            font-size: 0.8rem;
-            padding: 4px 8px;
+            font-size: 0.75rem;
+            padding: 2px 6px;
             border-radius: 4px;
-            margin-left: 10px;
+            margin-left: 6px;
+        }
+
+        /* Mode Admin / Viewer */
+        .admin-only {
+            display: none !important;
+        }
+
+        body.is-admin .admin-only {
+            display: flex !important;
+        }
+
+        body.is-admin form .btn-block {
+            display: block !important;
+        }
+
+        body:not(.is-admin) .readonly-hide {
+            display: none !important;
+        }
+
+        .role-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .role-viewer {
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+
+        .role-admin {
+            background-color: #dcfce7;
+            color: #15803d;
         }
     </style>
 </head>
@@ -307,11 +342,15 @@
 
 <div class="container">
     <header>
-        <h1>🏆 Quản Lý Quỹ Giao Lưu 22-44 Langames <span id="sync-status"></span></h1>
+        <h1>🏆 Quỹ 22-44 Langames <span id="sync-status"></span></h1>
         <div class="header-actions">
-            <button class="btn btn-secondary" onclick="exportData()">💾 Backup</button>
-            <button class="btn btn-secondary" onclick="importData()">📂 Nhập Data</button>
-            <button class="btn btn-danger" onclick="resetData()">🔄 Đặt lại</button>
+            <span id="role-tag" class="role-badge role-viewer">👁️ Chế độ: Chỉ xem</span>
+            <button id="auth-btn" class="btn btn-secondary" onclick="toggleAuth()">🔑 Đăng nhập Thủ quỹ</button>
+            <div class="admin-only" style="gap: 4px;">
+                <button class="btn btn-secondary" onclick="exportData()">💾 Backup</button>
+                <button class="btn btn-secondary" onclick="importData()">📂 Nhập Data</button>
+                <button class="btn btn-danger" onclick="resetData()">🔄 Đặt lại</button>
+            </div>
         </div>
     </header>
 
@@ -344,7 +383,8 @@
 
     <div class="main-grid">
         <div>
-            <div class="card">
+            <!-- Form Tạo Kèo (Ẩn nút bấm khi là Viewer) -->
+            <div class="card readonly-hide">
                 <div class="card-title">⚽ Tạo Kèo Đấu Mới (Thu 25,000đ/người)</div>
                 <form id="match-form">
                     <div class="form-group">
@@ -370,20 +410,20 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Đội Thắng (Ghi nhận thêm - Không bắt buộc)</label>
+                        <label>Đội Thắng (Ghi nhận thêm - Tuỳ chọn)</label>
                         <div class="team-selector">
                             <div class="player-select-group">
-                                <select class="winner-select"><option value="">-- Chọn (Tuỳ chọn) --</option></select>
-                                <select class="winner-select"><option value="">-- Chọn (Tuỳ chọn) --</option></select>
+                                <select class="winner-select"><option value="">-- Chọn --</option></select>
+                                <select class="winner-select"><option value="">-- Chọn --</option></select>
                             </div>
                             <div class="player-select-group">
-                                <select class="winner-select"><option value="">-- Chọn (Tuỳ chọn) --</option></select>
-                                <select class="winner-select"><option value="">-- Chọn (Tuỳ chọn) --</option></select>
+                                <select class="winner-select"><option value="">-- Chọn --</option></select>
+                                <select class="winner-select"><option value="">-- Chọn --</option></select>
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-block">➕ Lưu Kèo Đấu & Cập Nhật Quỹ</button>
+                    <button type="submit" class="btn btn-block admin-only">➕ Lưu Kèo Đấu & Cập Nhật Quỹ</button>
                 </form>
             </div>
 
@@ -395,7 +435,7 @@
                             <tr>
                                 <th>Ngày</th>
                                 <th>Đội Thua (-25k/người)</th>
-                                <th>Hành động</th>
+                                <th class="admin-only">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="match-history-body"></tbody>
@@ -410,7 +450,7 @@
                     <span>👥 Danh Sách Thành Viên (<span id="player-count">0</span>)</span>
                 </div>
                 
-                <div class="quick-add-player">
+                <div class="quick-add-player admin-only">
                     <input type="text" id="new-player-name" placeholder="Nhập tên thành viên mới...">
                     <button class="btn" onclick="addNewPlayer()">Thêm</button>
                 </div>
@@ -428,7 +468,7 @@
                                 <th>Cần đóng</th>
                                 <th>Đã đóng</th>
                                 <th>Còn lại</th>
-                                <th>Cập nhật</th>
+                                <th class="admin-only">Cập nhật</th>
                             </tr>
                         </thead>
                         <tbody id="player-stats-body"></tbody>
@@ -440,8 +480,13 @@
 </div>
 
 <script>
-    // ⚠️ ĐÃ THÊM DÒNG KẾT NỐI API GOOGLE SHEETS
+    // ⚠️ DÁN LINK WEB APP GOOGLE SCRIPT CỦA BẠN VÀO ĐÂY:
     const API_URL = "https://script.google.com/macros/s/AKfycbyDzP0Z8THq8y59_9H_pg4BHVBgFL8QX3KQfWuCKwS5IeJf0WrmFZyhEEwf99QJYQLrHA/exec";
+
+    // 🔑 MÃ PIN QUẢN TRỊ CỦA THỦ QUỸ (Bạn có thể đổi số '2244' thành số khác)
+    const ADMIN_PIN = "2244";
+
+    let isAdmin = false;
 
     const DEFAULT_PLAYERS = [
         "XO", "Love", "Shine", "Piano", "Lucky", "Apple", "Pig", "Dz",
@@ -458,8 +503,54 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('match-date').valueAsDate = new Date();
+        
+        // Kiểm tra xem đã lưu trạng thái Admin trên trình duyệt này chưa
+        if (sessionStorage.getItem('is_admin') === 'true') {
+            setAdminMode(true);
+        } else {
+            setAdminMode(false);
+        }
+
         loadDataFromCloud();
     });
+
+    function toggleAuth() {
+        if (isAdmin) {
+            if (confirm("Bạn muốn thoát chế độ Thủ quỹ?")) {
+                sessionStorage.removeItem('is_admin');
+                setAdminMode(false);
+            }
+        } else {
+            const pin = prompt("Nhập Mã PIN Thủ quỹ để chỉnh sửa:");
+            if (pin === ADMIN_PIN) {
+                sessionStorage.setItem('is_admin', 'true');
+                setAdminMode(true);
+                alert("🔓 Đã đăng nhập chế độ Thủ quỹ!");
+            } else if (pin !== null) {
+                alert("❌ Sai mã PIN!");
+            }
+        }
+    }
+
+    function setAdminMode(status) {
+        isAdmin = status;
+        const body = document.body;
+        const roleTag = document.getElementById('role-tag');
+        const authBtn = document.getElementById('auth-btn');
+
+        if (isAdmin) {
+            body.classList.add('is-admin');
+            roleTag.className = "role-badge role-admin";
+            roleTag.innerText = "⚡ Chế độ: Thủ quỹ (Admin)";
+            authBtn.innerText = "🔒 Đăng xuất";
+        } else {
+            body.classList.remove('is-admin');
+            roleTag.className = "role-badge role-viewer";
+            roleTag.innerText = "👁️ Chế độ: Chỉ xem";
+            authBtn.innerText = "🔑 Đăng nhập Thủ quỹ";
+        }
+        renderAll();
+    }
 
     function setSyncStatus(msg, isError = false) {
         const el = document.getElementById('sync-status');
@@ -497,6 +588,11 @@
     }
 
     async function saveData() {
+        if (!isAdmin) {
+            alert("⚠️ Bạn đang ở chế độ 'Chỉ xem', không có quyền lưu dữ liệu!");
+            return;
+        }
+
         localStorage.setItem('fund_players', JSON.stringify(players));
         localStorage.setItem('fund_matches', JSON.stringify(matches));
         localStorage.setItem('fund_payments', JSON.stringify(payments));
@@ -542,6 +638,8 @@
 
     document.getElementById('match-form').addEventListener('submit', (e) => {
         e.preventDefault();
+        if (!isAdmin) return;
+
         const date = document.getElementById('match-date').value;
         const loserSelects = document.querySelectorAll('.loser-select');
         const losers = Array.from(loserSelects).map(s => s.value).filter(v => v !== '');
@@ -572,6 +670,7 @@
     });
 
     function addNewPlayer() {
+        if (!isAdmin) return;
         const input = document.getElementById('new-player-name');
         const name = input.value.trim();
         if (!name) return;
@@ -588,6 +687,7 @@
     }
 
     function editPlayerName(oldName) {
+        if (!isAdmin) return;
         const newName = prompt(`Nhập tên mới cho thành viên "${oldName}":`, oldName);
         if (!newName || newName.trim() === '' || newName === oldName) return;
         
@@ -616,6 +716,7 @@
     }
 
     function deletePlayer(playerName) {
+        if (!isAdmin) return;
         const hasHistory = matches.some(m => m.losers.includes(playerName));
         let msg = `Bạn có chắc chắn muốn xóa thành viên "${playerName}" không?`;
         if (hasHistory) {
@@ -631,6 +732,7 @@
     }
 
     function updatePayment(playerName) {
+        if (!isAdmin) return;
         const currentPaid = payments[playerName] || 0;
         const newPaid = prompt(`Cập nhật số tiền ĐÃ NỘP của ${playerName}:`, currentPaid);
         
@@ -641,11 +743,13 @@
     }
 
     function markFullyPaid(playerName, totalOwed) {
+        if (!isAdmin) return;
         payments[playerName] = totalOwed;
         saveData();
     }
 
     function deleteMatch(matchId) {
+        if (!isAdmin) return;
         if (confirm("Bạn có chắc chắn muốn xóa kèo đấu này?")) {
             matches = matches.filter(m => m.id !== matchId);
             saveData();
@@ -733,7 +837,7 @@
                         ? `<span class="tag tag-danger">Nợ ${remaining.toLocaleString('vi-VN')}đ</span>` 
                         : `<span class="tag tag-success">Đã đủ</span>`}
                 </td>
-                <td>
+                <td class="admin-only">
                     <div class="action-btns">
                         <button class="btn btn-secondary" style="padding: 2px 6px; font-size: 0.75rem;" onclick="editPlayerName('${p}')" title="Sửa tên">✏️</button>
                         <button class="btn btn-danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="deletePlayer('${p}')" title="Xóa">🗑️</button>
@@ -758,7 +862,7 @@
             tr.innerHTML = `
                 <td>${formattedDate}</td>
                 <td>${m.losers.join(', ')}</td>
-                <td>
+                <td class="admin-only">
                     <button class="btn btn-danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="deleteMatch(${m.id})">Xóa</button>
                 </td>
             `;
@@ -771,6 +875,7 @@
     }
 
     function exportData() {
+        if (!isAdmin) return;
         const data = { players, matches, payments };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -781,6 +886,7 @@
     }
 
     function importData() {
+        if (!isAdmin) return;
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'application/json';
@@ -807,6 +913,7 @@
     }
 
     function resetData() {
+        if (!isAdmin) return;
         if (confirm("⚠️ CẢNH BÁO: Việc này sẽ xóa toàn bộ lịch sử trận đấu và đóng quỹ. Bạn có chắc không?")) {
             localStorage.clear();
             players = DEFAULT_PLAYERS;
