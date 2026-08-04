@@ -342,10 +342,10 @@
 
 <div class="container">
     <header>
-        <h1>🏆 Quỹ 22-44 Langames <span id="sync-status"></span></h1>
+        <h1>🏆 Quỹ Offline Langames - Đội Thua mất 25k/người <span id="sync-status"></span></h1>
         <div class="header-actions">
             <span id="role-tag" class="role-badge role-viewer">👁️ Chế độ: Chỉ xem</span>
-            <button id="auth-btn" class="btn btn-secondary" onclick="toggleAuth()">🔑 Đăng nhập Thủ quỹ</button>
+            <button id="auth-btn" class="btn btn-secondary" onclick="toggleAuth()">🔑 Đăng nhập Thủ quỹ (XO)</button>
             <div class="admin-only" style="gap: 4px;">
                 <button class="btn btn-secondary" onclick="exportData()">💾 Backup</button>
                 <button class="btn btn-secondary" onclick="importData()">📂 Nhập Data</button>
@@ -490,11 +490,8 @@
 
     const DEFAULT_PLAYERS = [
         "XO", "Love", "Shine", "Piano", "Lucky", "Apple", "Pig", "Dz",
-        "Anh Tuấn", "Bình", "Cường", "Dũng", "Đạt", "Giang", "Hải", "Hùng",
-        "Huy", "Kha", "Khánh", "Lâm", "Long", "Minh", "Nam", "Nghĩa",
-        "Nguyên", "Phong", "Phúc", "Quân", "Quang", "Sơn", "Tài", "Tâm",
-        "Thành", "Thắng", "Thịnh", "Tiến", "Toàn", "Trí", "Trung", "Tú",
-        "Việt", "Vinh", "Vũ", "Thảo", "Trang", "Linh", "Hương", "Phương", "Mai", "Nhung"
+        "King", "Ajax", "NP", "NgocTram", "Tovo", "JokoNam", "Relax", "Tiger",
+        "Dante", "VT-Hà Nát", "BondBond", "6789", "Haclong", "MMM"
     ];
 
     let players = JSON.parse(localStorage.getItem('fund_players')) || DEFAULT_PLAYERS;
