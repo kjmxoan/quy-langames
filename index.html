@@ -139,7 +139,7 @@
             color: var(--text-main);
         }
 
-        input[type="date"], select, input[type="text"] {
+        input[type="date"], input[type="number"], select, input[type="text"] {
             width: 100%;
             padding: 9px 12px;
             border: 1px solid var(--border-color);
@@ -150,7 +150,7 @@
             background-color: #fff;
         }
 
-        input[type="date"]:focus, select:focus, input[type="text"]:focus {
+        input[type="date"]:focus, input[type="number"]:focus, select:focus, input[type="text"]:focus {
             border-color: var(--primary-color);
         }
 
@@ -185,6 +185,15 @@
             background-color: #f0fdf4;
             border: 1px solid #bbf7d0;
             color: #166534;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .badge-donate {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            color: #0369a1;
             padding: 10px;
             border-radius: 8px;
             margin-top: 8px;
@@ -464,6 +473,10 @@
             <div class="value" id="stat-total-remaining" style="color: #ef4444;">0 đ</div>
         </div>
         <div class="stat-card">
+            <div class="label">Tổng tiền Donate</div>
+            <div class="value" id="stat-total-donate" style="color: #0284c7;">0 đ</div>
+        </div>
+        <div class="stat-card">
             <div class="label">Số kèo đã đấu</div>
             <div class="value" id="stat-total-matches">0</div>
         </div>
@@ -483,6 +496,7 @@
 
     <div class="main-grid">
         <div>
+            <!-- Form Tạo Kèo -->
             <div class="card readonly-hide">
                 <div class="card-title">⚽ Tạo Kèo Đấu Mới (Thu 25,000đ/người thua)</div>
                 <form id="match-form">
@@ -529,6 +543,31 @@
                 </form>
             </div>
 
+            <!-- Form Ghi Nhận Donate Mới -->
+            <div class="card readonly-hide">
+                <div class="card-title">🎁 Ghi Nhận Donate Mới</div>
+                <form id="donate-form">
+                    <div class="badge-donate">
+                        <div class="form-group">
+                            <label>Người Donate (Ủng hộ)</label>
+                            <select id="donate-player-select">
+                                <option value="">-- Chọn thành viên hoặc nhập tên ngoài --</option>
+                            </select>
+                            <input type="text" id="donate-custom-name" placeholder="Hoặc nhập tên người ngoài danh sách..." style="margin-top: 6px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Số tiền ủng hộ (VNĐ)</label>
+                            <input type="number" id="donate-amount" placeholder="Ví dụ: 100000" min="1000" step="1000" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Ghi chú (Tuỳ chọn)</label>
+                            <input type="text" id="donate-note" placeholder="Ví dụ: Tài trợ nước uống, quà sinh nhật...">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-block admin-only" style="margin-top: 12px; background-color: #0284c7;">💖 Lưu Lượt Donate</button>
+                </form>
+            </div>
+
             <div class="card">
                 <div class="card-title">📜 Nhật Ký Các Kèo Đấu</div>
                 <div class="table-responsive">
@@ -557,6 +596,25 @@
                         <p>Số TK: <strong>0868549555</strong></p>
                     </div>
                     <p class="qr-note">💡 Nội dung CK: <i>[Tên_Member] nop quy Langames</i></p>
+                </div>
+            </div>
+
+            <!-- Bảng Sao Kê Quyên Góp (Donate) -->
+            <div class="card">
+                <div class="card-title">🌟 Bảng Sao Kê Quyên Góp (Donate)</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Mạnh thường quân</th>
+                                <th>Số tiền</th>
+                                <th>Ghi chú</th>
+                                <th class="admin-only">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donate-history-body"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -595,7 +653,7 @@
     </div>
 </div>
 
-<!-- Modal nhap PIN hien thi dau hoa thi * -->
+<!-- Modal nhap PIN -->
 <div id="pin-modal" class="pin-modal-overlay" style="display: none;">
     <div class="pin-modal">
         <h3>🔒 Nhập Mã PIN Thủ quỹ:</h3>
@@ -622,6 +680,7 @@
     let players = JSON.parse(localStorage.getItem('fund_players')) || DEFAULT_PLAYERS;
     let matches = JSON.parse(localStorage.getItem('fund_matches')) || [];
     let payments = JSON.parse(localStorage.getItem('fund_payments')) || {};
+    let donations = JSON.parse(localStorage.getItem('fund_donations')) || [];
 
     document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('match-date').valueAsDate = new Date();
@@ -634,7 +693,6 @@
 
         loadDataFromCloud();
 
-        // Ho tro nhan Enter khi gõ PIN
         document.getElementById('pin-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') submitPin();
         });
@@ -714,9 +772,11 @@
                     players = cloudData.players;
                     matches = cloudData.matches || [];
                     payments = cloudData.payments || {};
+                    donations = cloudData.donations || [];
                     localStorage.setItem('fund_players', JSON.stringify(players));
                     localStorage.setItem('fund_matches', JSON.stringify(matches));
                     localStorage.setItem('fund_payments', JSON.stringify(payments));
+                    localStorage.setItem('fund_donations', JSON.stringify(donations));
                     setSyncStatus('☁️ Đã đồng bộ');
                 } else {
                     setSyncStatus('💻 Offline');
@@ -740,12 +800,13 @@
         localStorage.setItem('fund_players', JSON.stringify(players));
         localStorage.setItem('fund_matches', JSON.stringify(matches));
         localStorage.setItem('fund_payments', JSON.stringify(payments));
+        localStorage.setItem('fund_donations', JSON.stringify(donations));
         renderAll();
 
         if (API_URL && !API_URL.includes("DÁN_LINK")) {
             setSyncStatus('⏳ Đang lưu...');
             try {
-                const dataToSave = { players, matches, payments };
+                const dataToSave = { players, matches, payments, donations };
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -762,6 +823,7 @@
     function populateSelectOptions() {
         const losersSelects = document.querySelectorAll('.loser-select');
         const winnersSelects = document.querySelectorAll('.winner-select');
+        const donateSelect = document.getElementById('donate-player-select');
 
         players.sort((a, b) => a.localeCompare(b, 'vi'));
 
@@ -778,6 +840,13 @@
                 players.map(p => `<option value="${p}">${p}</option>`).join('');
             select.value = currentVal;
         });
+
+        if (donateSelect) {
+            const currentVal = donateSelect.value;
+            donateSelect.innerHTML = `<option value="">-- Chọn thành viên hoặc nhập tên ngoài --</option>` +
+                players.map(p => `<option value="${p}">${p}</option>`).join('');
+            donateSelect.value = currentVal;
+        }
     }
 
     document.getElementById('match-form').addEventListener('submit', (e) => {
@@ -822,6 +891,55 @@
         alert("✅ Đã ghi nhận kèo đấu!");
     });
 
+    // Thêm xử lý Form Donate
+    document.getElementById('donate-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!isAdmin) return;
+
+        const selectedPlayer = document.getElementById('donate-player-select').value;
+        const customName = document.getElementById('donate-custom-name').value.trim();
+        const amount = parseInt(document.getElementById('donate-amount').value, 10);
+        const note = document.getElementById('donate-note').value.trim();
+
+        const name = selectedPlayer || customName;
+
+        if (!name) {
+            alert("Vui lòng chọn thành viên hoặc nhập tên người ủng hộ!");
+            return;
+        }
+
+        if (isNaN(amount) || amount <= 0) {
+            alert("Vui lòng nhập số tiền hợp lệ!");
+            return;
+        }
+
+        const donateItem = {
+            id: Date.now(),
+            date: new Date().toISOString().slice(0, 10),
+            name: name,
+            amount: amount,
+            note: note || "Donate quỹ"
+        };
+
+        donations.push(donateItem);
+        saveData();
+
+        document.getElementById('donate-player-select').value = '';
+        document.getElementById('donate-custom-name').value = '';
+        document.getElementById('donate-amount').value = '';
+        document.getElementById('donate-note').value = '';
+
+        alert(`✅ Đã ghi nhận ${name} donate ${amount.toLocaleString('vi-VN')}đ vào quỹ!`);
+    });
+
+    function deleteDonate(id) {
+        if (!isAdmin) return;
+        if (confirm("Bạn có chắc muốn xóa lượt donate này?")) {
+            donations = donations.filter(d => d.id !== id);
+            saveData();
+        }
+    }
+
     function addNewPlayer() {
         if (!isAdmin) return;
         const input = document.getElementById('new-player-name');
@@ -860,6 +978,10 @@
             if (m.winners) {
                 m.winners = m.winners.map(p => p === oldName ? trimmedNewName : p);
             }
+        });
+
+        donations.forEach(d => {
+            if (d.name === oldName) d.name = trimmedNewName;
         });
 
         if (payments[oldName] !== undefined) {
@@ -916,17 +1038,18 @@
         renderStats();
         renderPlayerTable();
         renderMatchHistory();
+        renderDonateHistory();
     }
 
     function renderStats() {
         const loserCounts = {};
         const winnerCounts = {};
-        let totalOwed = 0;
+        let totalOwedMatches = 0;
 
         matches.forEach(m => {
             m.losers.forEach(l => {
                 loserCounts[l] = (loserCounts[l] || 0) + 1;
-                totalOwed += (m.feePerPerson || 25000);
+                totalOwedMatches += (m.feePerPerson || 25000);
             });
             if (m.winners) {
                 m.winners.forEach(w => {
@@ -935,14 +1058,20 @@
             }
         });
 
-        let totalPaid = 0;
-        Object.values(payments).forEach(val => totalPaid += val);
+        let totalDonate = 0;
+        donations.forEach(d => totalDonate += (d.amount || 0));
 
-        const totalRemaining = totalOwed - totalPaid;
+        let totalPaidMatches = 0;
+        Object.values(payments).forEach(val => totalPaidMatches += val);
+
+        const totalOwed = totalOwedMatches + totalDonate;
+        const totalPaid = totalPaidMatches + totalDonate;
+        const totalRemaining = totalOwedMatches - totalPaidMatches;
 
         document.getElementById('stat-total-owed').innerText = totalOwed.toLocaleString('vi-VN') + " đ";
         document.getElementById('stat-total-paid').innerText = totalPaid.toLocaleString('vi-VN') + " đ";
         document.getElementById('stat-total-remaining').innerText = totalRemaining.toLocaleString('vi-VN') + " đ";
+        document.getElementById('stat-total-donate').innerText = totalDonate.toLocaleString('vi-VN') + " đ";
         document.getElementById('stat-total-matches').innerText = matches.length;
 
         // Vua Thắng Kèo
@@ -1059,13 +1188,40 @@
         });
     }
 
+    function renderDonateHistory() {
+        const tbody = document.getElementById('donate-history-body');
+        tbody.innerHTML = '';
+
+        const sortedDonations = [...donations].reverse();
+
+        if (sortedDonations.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Chưa có lượt quyên góp nào</td></tr>`;
+            return;
+        }
+
+        sortedDonations.forEach(d => {
+            const formattedDate = new Date(d.date).toLocaleDateString('vi-VN');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${formattedDate}</td>
+                <td><strong>${d.name}</strong></td>
+                <td style="color: #0284c7; font-weight: 600;">+${d.amount.toLocaleString('vi-VN')}đ</td>
+                <td style="color: var(--text-muted); font-style: italic;">${d.note}</td>
+                <td class="admin-only">
+                    <button class="btn btn-danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="deleteDonate(${d.id})">Xóa</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
     function filterPlayers() {
         renderPlayerTable();
     }
 
     function exportData() {
         if (!isAdmin) return;
-        const data = { players, matches, payments };
+        const data = { players, matches, payments, donations };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1089,6 +1245,7 @@
                         players = data.players;
                         matches = data.matches;
                         payments = data.payments || {};
+                        donations = data.donations || [];
                         saveData();
                         alert("✅ Nhập dữ liệu thành công!");
                     }
@@ -1103,11 +1260,12 @@
 
     function resetData() {
         if (!isAdmin) return;
-        if (confirm("⚠️ CẢNH BÁO: Việc này sẽ xóa toàn bộ lịch sử trận đấu và đóng quỹ. Bạn có chắc không?")) {
+        if (confirm("⚠️ CẢNH BÁO: Việc này sẽ xóa toàn bộ lịch sử trận đấu, donate và đóng quỹ. Bạn có chắc không?")) {
             localStorage.clear();
             players = DEFAULT_PLAYERS;
             matches = [];
             payments = {};
+            donations = [];
             saveData();
         }
     }
